@@ -34,6 +34,23 @@ app.get('/', (req, res) => {
     });
 });
 
+// Webhook endpoint for Telegram bot
+app.post('/webhook', async (req, res) => {
+    try {
+        console.log('Received webhook request:', JSON.stringify(req.body, null, 2));
+        
+        // Handle the webhook update
+        await telegramBot.handleWebhookUpdate(req.body);
+        
+        // Always respond with 200 OK to Telegram
+        res.status(200).json({ status: 'OK' });
+    } catch (error) {
+        console.error('Error handling webhook:', error);
+        // Still respond with 200 to avoid Telegram retrying
+        res.status(200).json({ status: 'Error but OK' });
+    }
+});
+
 // API Routes
 app.get('/api/status', async (req, res) => {
     try {

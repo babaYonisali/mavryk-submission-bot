@@ -12,8 +12,8 @@ class TelegramBotHandler {
 
     async init() {
         try {
-            // Create bot instance
-            this.bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
+            // Create bot instance (no polling for Vercel)
+            this.bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
             
             // Set up command handlers
             this.setupCommandHandlers();
@@ -22,10 +22,103 @@ class TelegramBotHandler {
             this.setupErrorHandling();
             
             this.isInitialized = true;
-            console.log('Telegram bot initialized successfully');
+            console.log('Telegram bot initialized successfully (webhook mode)');
         } catch (error) {
             console.error('Error initializing Telegram bot:', error);
             throw error;
+        }
+    }
+
+    // Method to handle webhook updates
+    async handleWebhookUpdate(update) {
+        try {
+            console.log('Received webhook update:', JSON.stringify(update, null, 2));
+            
+            if (update.message) {
+                const msg = update.message;
+                console.log('Processing message:', msg.text);
+                
+                // Handle commands
+                if (msg.text && msg.text.startsWith('/')) {
+                    await this.handleCommand(msg);
+                }
+            }
+        } catch (error) {
+            console.error('Error handling webhook update:', error);
+        }
+    }
+
+    async handleCommand(msg) {
+        const text = msg.text;
+        
+        if (text === '/start') {
+            await this.handleStartCommand(msg);
+        } else if (text === '/status') {
+            await this.handleStatusCommand(msg);
+        } else if (text === '/help') {
+            await this.handleHelpCommand(msg);
+        } else if (text.startsWith('/SubmitMavryk ')) {
+            const tweetUrl = text.replace('/SubmitMavryk ', '');
+            await this.handleSubmitMavrykCommand(msg, tweetUrl);
+        } else {
+            await this.handleUnknownCommand(msg);
+        }
+    }
+
+    async handleStartCommand(msg) {
+        try {
+            this.logUserMessage(msg, '/start');
+            const chatId = msg.chat.id;
+            const welcomeMessage = `🤖 Welcome to the Mavryk Submission Bot!
+
+Available commands:
+• /status - Check your connection status
+• /SubmitMavryk <tweet_url> - Submit a Mavryk tweet
+
+To get started, you need to connect your X account first.
+Visit: https://community.wengro.com`;
+            
+            await this.bot.sendMessage(chatId, welcomeMessage);
+        } catch (error) {
+            console.error('Error handling /start command:', error);
+        }
+    }
+
+    async handleHelpCommand(msg) {
+        try {
+            this.logUserMessage(msg, '/help');
+            const chatId = msg.chat.id;
+            const helpMessage = `📋 Mavryk Submission Bot Help
+
+Commands:
+• /status - Check if your X account is connected
+• /SubmitMavryk <tweet_url> - Submit a Mavryk tweet for review
+• /help - Show this help message
+
+How to use:
+1. First, connect your X account at: https://community.wengro.com
+2. Use /status to verify your connection
+3. Submit tweets using: /SubmitMavryk https://x.com/username/status/123456789
+
+Example:
+/SubmitMavryk https://x.com/mavryk/status/1234567890123456789`;
+            
+            await this.bot.sendMessage(chatId, helpMessage);
+        } catch (error) {
+            console.error('Error handling /help command:', error);
+        }
+    }
+
+    async handleUnknownCommand(msg) {
+        try {
+            console.log(`⚠️ Unrecognized command: ${msg.text}`);
+            this.logUserMessage(msg, 'Unrecognized command');
+            const chatId = msg.chat.id;
+            await this.bot.sendMessage(chatId, 
+                '❌ Unknown command. Use /help to see available commands.'
+            );
+        } catch (error) {
+            console.error('Error handling unknown command:', error);
         }
     }
 
