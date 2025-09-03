@@ -343,8 +343,7 @@ Details:
 • Tweet URL: ${normalizedUrl}
 • Your X Handle: @${user.xHandle}
 • Submitted: ${new Date().toLocaleString()}
-
-We'll review your submission and get back to you soon!`;
+`;
             await this.bot.sendMessage(chatId, successMessage);
 
         } catch (error) {
