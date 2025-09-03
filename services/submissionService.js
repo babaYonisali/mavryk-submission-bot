@@ -42,6 +42,16 @@ class SubmissionService {
         }
     }
 
+    async hasUserSubmittedToday(telegramHandle) {
+        try {
+            const todaySubmission = await Submission.hasSubmittedToday(telegramHandle);
+            return !!todaySubmission; // Return true if submission exists, false otherwise
+        } catch (error) {
+            console.error('Error checking daily submission:', error);
+            throw error;
+        }
+    }
+
     async getAllSubmissions(limit = 50, skip = 0) {
         try {
             const submissions = await Submission.getAllSubmissions(limit, skip);

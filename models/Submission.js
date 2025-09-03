@@ -50,6 +50,21 @@ submissionSchema.statics.findDuplicate = function(telegramHandle, tweetUrl) {
     });
 };
 
+// Static method to check if user has submitted today (case-insensitive telegram handle)
+submissionSchema.statics.hasSubmittedToday = function(telegramHandle) {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    
+    return this.findOne({
+        telegramHandle: { $regex: new RegExp(`^${telegramHandle}$`, 'i') },
+        submittedAt: {
+            $gte: startOfDay,
+            $lt: endOfDay
+        }
+    });
+};
+
 // Static method to get all submissions with pagination
 submissionSchema.statics.getAllSubmissions = function(limit = 50, skip = 0) {
     return this.find({})

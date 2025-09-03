@@ -80,6 +80,8 @@ Available commands:
 • /status - Check your connection status
 • /SubmitMavryk <tweet_url> - Submit a Mavryk tweet
 
+📅 Daily Limit: You can only submit one tweet per day.
+
 To get started, you need to connect your X account first.
 Visit: https://community.wengro.com`;
             
@@ -104,6 +106,8 @@ How to use:
 1. First, connect your X account at: https://community.wengro.com
 2. Use /status to verify your connection
 3. Submit tweets using: /SubmitMavryk https://x.com/username/status/123456789
+
+📅 Daily Limit: You can only submit one tweet per day.
 
 Example:
 /SubmitMavryk https://x.com/mavryk/status/1234567890123456789`;
@@ -287,6 +291,18 @@ Please visit: 🔗 https://community.wengro.com
 
 Connect your X account first, then try submitting again.`;
                 await this.bot.sendMessage(chatId, errorMessage);
+                return;
+            }
+
+            // Check if user has already submitted today
+            console.log(`📅 Checking if user has submitted today: @${telegramHandle}`);
+            const hasSubmittedToday = await submissionService.hasUserSubmittedToday(telegramHandle);
+            
+            if (hasSubmittedToday) {
+                console.log(`❌ User has already submitted today: @${telegramHandle}`);
+                await this.bot.sendMessage(chatId, 
+                    '❌ You have already submitted a tweet today. You can only submit one tweet per day.\n\nCome back tomorrow to submit another tweet!'
+                );
                 return;
             }
 
